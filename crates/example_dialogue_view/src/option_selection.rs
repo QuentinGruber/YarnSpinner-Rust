@@ -1,6 +1,6 @@
 use crate::ExampleYarnSpinnerDialogueViewSystemSet;
 use crate::setup::{DialogueNode, OptionButton, OptionsNode, UiRootNode, spawn_options};
-use crate::typewriter::{self, Typewriter, TypewriterFinishedEvent};
+use crate::typewriter::{Typewriter, TypewriterFinishedEvent};
 use bevy::color::palettes::css;
 use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
@@ -13,9 +13,9 @@ pub(crate) fn option_selection_plugin(app: &mut App) {
         (
             create_options.run_if(resource_added::<OptionSelection>),
             show_options,
-            select_option
-                .run_if(resource_exists::<OptionSelection>.and(any_with_component::<PrimaryWindow>))
-                .before(typewriter::despawn),
+            select_option.run_if(
+                resource_exists::<OptionSelection>.and(any_with_component::<PrimaryWindow>),
+            ),
         )
             .chain()
             .after(YarnSpinnerSystemSet)

@@ -1,7 +1,7 @@
 use crate::ExampleYarnSpinnerDialogueViewSystemSet;
 use crate::option_selection::OptionSelection;
 use crate::setup::{DialogueContinueNode, DialogueNameNode, UiRootNode};
-use crate::typewriter::{self, Typewriter};
+use crate::typewriter::Typewriter;
 use bevy::prelude::*;
 use bevy_yarnspinner::{events::*, prelude::*};
 
@@ -11,7 +11,6 @@ pub(crate) fn ui_updating_plugin(app: &mut App) {
         continue_dialogue
             .run_if(resource_exists::<Typewriter>)
             .after(YarnSpinnerSystemSet)
-            .after(typewriter::spawn)
             .in_set(ExampleYarnSpinnerDialogueViewSystemSet),
     )
     .add_message::<SpeakerChangeEvent>()

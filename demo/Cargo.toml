@@ -12,10 +12,10 @@ license = "MIT OR Apache-2.0"
 publish = false
 
 [dependencies]
-bevy = { version = "0.17.0" }
-bevy_yarnspinner = { path = "../crates/bevy_plugin", version = "0.6.0" }
-bevy_yarnspinner_example_dialogue_view = { path = "../crates/example_dialogue_view", version = "0.6.0" }
-bevy_sprite3d = { version = "7.0.0-rc", git = "https://github.com/janhohenheim/bevy_sprite3d", branch = "bevy-0.17.0-rc" }
+bevy = { version = "0.18.0" }
+bevy_yarnspinner = { path = "../crates/bevy_plugin", version = "0.7.0" }
+bevy_yarnspinner_example_dialogue_view = { path = "../crates/example_dialogue_view", version = "0.7.0" }
+bevy_sprite3d = "8.0.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.3", features = ["wasm_js"] }

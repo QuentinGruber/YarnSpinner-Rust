@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use bevy::asset::io::Reader;
 use bevy::prelude::*;
+use bevy::reflect::TypePath;
 
 use anyhow::Result;
 use bevy::asset::{AssetLoader, LoadContext};
@@ -71,7 +72,7 @@ pub(crate) fn yarnspinner_asset_loader_plugin(app: &mut App) {
         .init_asset_loader::<YarnFileAssetLoader>();
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, TypePath)]
 struct YarnFileAssetLoader;
 
 impl AssetLoader for YarnFileAssetLoader {
@@ -98,6 +99,7 @@ impl AssetLoader for YarnFileAssetLoader {
 fn read_yarn_file(bytes: Vec<u8>, load_context: &LoadContext) -> Result<YarnFile, Error> {
     let source = String::from_utf8(bytes)?;
     let file_name = load_context
+        .path()
         .path()
         .file_name()
         .context("Yarn file has no filename")?
