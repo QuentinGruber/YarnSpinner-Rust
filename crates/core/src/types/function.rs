@@ -44,7 +44,7 @@ impl From<FunctionType> for Type {
 impl FunctionType {
     /// Sets the return type of this function signature
     pub fn set_return_type(&mut self, return_type: impl Into<Option<Type>>) -> &mut Self {
-        self.return_type = Box::new(return_type.into());
+        *self.return_type = return_type.into();
         self
     }
 
