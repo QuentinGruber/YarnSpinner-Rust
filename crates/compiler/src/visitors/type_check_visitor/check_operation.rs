@@ -157,7 +157,7 @@ impl<'input> TypeCheckVisitor<'input> {
                 if func.return_type.is_some() {
                     continue;
                 }
-                func.return_type = Box::new(expression_type.clone());
+                *func.return_type = expression_type.clone();
             } else {
                 self.visit(term.deref());
             }
