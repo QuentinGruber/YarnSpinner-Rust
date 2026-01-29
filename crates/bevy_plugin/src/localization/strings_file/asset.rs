@@ -16,7 +16,7 @@ pub(crate) fn strings_file_asset_plugin(app: &mut App) {
         .init_asset_loader::<StringsFileAssetLoader>();
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, TypePath)]
 struct StringsFileAssetLoader;
 
 impl AssetLoader for StringsFileAssetLoader {

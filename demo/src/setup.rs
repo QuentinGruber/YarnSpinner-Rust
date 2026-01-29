@@ -83,7 +83,7 @@ pub(crate) fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         StageCurtains,
     ));
-    commands.insert_resource(AmbientLight {
+    commands.insert_resource(GlobalAmbientLight {
         color: Color::srgb(1., 0.75, 0.7),
         brightness: 0.25,
         ..default()

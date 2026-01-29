@@ -79,10 +79,10 @@ fn setup(mut commands: Commands) {
                             left: Val::Px(TEXT_BORDER_HORIZONTAL),
                             right: Val::Px(TEXT_BORDER_HORIZONTAL),
                         },
+                        border_radius: BorderRadius::all(Val::Px(20.0)),
                         ..default()
                     },
                     BackgroundColor(Color::BLACK.with_alpha(0.8)),
-                    BorderRadius::all(Val::Px(20.0)),
                 ))
                 .with_children(|parent| {
                     // Dialog itself
