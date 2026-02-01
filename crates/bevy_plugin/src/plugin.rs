@@ -246,19 +246,15 @@ impl YarnApp for App {
         self.insert_resource(WatchingForChanges(watching_for_changes))
     }
 
-    #[cfg(target_arch = "wasm32")]
     fn register_asset_root(&mut self) -> &mut Self {
         let asset_plugin = get_asset_plugin(self);
         let path_str = asset_plugin.file_path.clone();
-        let path = PathBuf::from(path_str);
-        self.insert_resource(AssetRoot(path))
-    }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    fn register_asset_root(&mut self) -> &mut Self {
-        let asset_plugin = get_asset_plugin(self);
-        let mut path = FileAssetReader::get_base_path();
-        path.push(asset_plugin.file_path.clone());
+        #[cfg(not(target_arch = "wasm32"))]
+        let path = FileAssetReader::get_base_path().join(path_str);
+        #[cfg(target_arch = "wasm32")]
+        let path = PathBuf::from(path_str);
+
         self.insert_resource(AssetRoot(path))
     }
 }
