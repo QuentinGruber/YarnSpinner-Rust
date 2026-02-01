@@ -1,5 +1,7 @@
 use crate::prelude::*;
 use crate::project::{LoadYarnProjectEvent, WatchingForChanges};
+#[cfg(not(target_arch = "wasm32"))]
+use bevy::asset::io::file::FileAssetReader;
 use bevy::prelude::*;
 use std::path::PathBuf;
 pub use yarn_file_source::YarnFileSource;
@@ -244,10 +246,19 @@ impl YarnApp for App {
         self.insert_resource(WatchingForChanges(watching_for_changes))
     }
 
+    #[cfg(target_arch = "wasm32")]
     fn register_asset_root(&mut self) -> &mut Self {
         let asset_plugin = get_asset_plugin(self);
         let path_str = asset_plugin.file_path.clone();
         let path = PathBuf::from(path_str);
+        self.insert_resource(AssetRoot(path))
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn register_asset_root(&mut self) -> &mut Self {
+        let asset_plugin = get_asset_plugin(self);
+        let mut path = FileAssetReader::get_base_path();
+        path.push(asset_plugin.file_path.clone());
         self.insert_resource(AssetRoot(path))
     }
 }
