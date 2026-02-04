@@ -18,7 +18,7 @@ use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
 
 pub(crate) struct UntaggedLineListener<'input> {
-    existing_line_tags: Vec<LineId>,
+    pub(crate) existing_line_tags: Vec<LineId>,
     file: FileParseResult<'input>,
     pub(crate) rewritten_lines: Rc<RefCell<Vec<String>>>,
     pub(crate) rewrote_anything: Rc<AtomicBool>,

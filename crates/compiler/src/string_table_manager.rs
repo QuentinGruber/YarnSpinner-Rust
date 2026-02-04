@@ -2,9 +2,12 @@
 
 use crate::output::StringInfo;
 use crate::prelude::*;
+use crc32fast;
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use yarnspinner_core::prelude::*;
+
+const MAX_ATTEMPTS: usize = 1000;
 
 #[derive(Debug, Clone, Default)]
 pub(crate) struct StringTableManager(pub HashMap<LineId, StringInfo>);
@@ -33,13 +36,28 @@ impl StringTableManager {
             };
             (line_id, string_info)
         } else {
-            let line_id = format!(
-                "{LINE_ID_PREFIX}{}-{}-{}",
+            let candidate_seed = format!(
+                "{}{}{}",
                 string_info.file_name,
                 string_info.node_name,
                 self.len()
-            )
-            .into();
+            );
+
+            let line_id = (0..=MAX_ATTEMPTS)
+                .find_map(|count| {
+                    let with_suffix = if count == 0 {
+                        candidate_seed.as_str().to_owned()
+                    } else {
+                        format!("{candidate_seed}{count}")
+                    };
+
+                    let id =
+                        format!("{LINE_ID_PREFIX}{}", crc32fast::hash(with_suffix.as_bytes())).into();
+
+                    (!self.contains_key(&id)).then_some(id)
+                })
+                .expect(&format!("Internal error: string table failed to find a non-colliding hash for \"{candidate_seed}\" after {MAX_ATTEMPTS} attempts"));
+
             let string_info = StringInfo {
                 is_implicit_tag: true,
                 ..string_info

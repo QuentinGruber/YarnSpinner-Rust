@@ -142,7 +142,10 @@ impl<'input> YarnSpinnerParserVisitorCompat<'input> for DeclarationVisitor<'inpu
         // Figure out the value and its type
         let mut constant_value_visitor =
             ConstantValueVisitor::new(self.diagnostics.clone(), self.file.clone());
-        let value_context = ctx.value().unwrap();
+        let Some(value_context) = ctx.value() else {
+            // no value was provided, declare as undefined and continue
+            return;
+        };
         let value = constant_value_visitor.visit(value_context.as_ref());
         self.diagnostics
             .extend_from_slice(&constant_value_visitor.diagnostics);

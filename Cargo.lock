@@ -6575,6 +6575,7 @@ dependencies = [
  "antlr-rust",
  "better_any",
  "bevy",
+ "crc32fast",
  "instant",
  "rand",
  "regex",

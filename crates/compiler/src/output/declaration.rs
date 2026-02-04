@@ -171,6 +171,11 @@ impl Declaration {
                 _ => false,
             }
     }
+
+    /// Gets a value indicating whether this Declaration represents a variable.
+    pub fn is_variable(&self) -> bool {
+        !matches!(self.r#type, Type::Function(_))
+    }
 }
 
 /// The source of a declaration.
