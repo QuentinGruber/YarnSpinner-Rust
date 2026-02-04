@@ -20,7 +20,6 @@ pub(crate) fn compile(compiler: &Compiler) -> Result<Compilation> {
         &create_declarations_for_tracking_nodes,
         &add_tracking_declarations,
         &resolve_deferred_type_diagnostic,
-        &validate_unique_inferred_variables,
         &add_error_for_empty_nodes,
         &break_on_job_with_only_declarations,
         &generate_code,

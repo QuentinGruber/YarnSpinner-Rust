@@ -110,7 +110,7 @@ before 🧑🏾‍❤️‍💋‍🧑🏻after #line:abc130 // with a comment
 
     // Act
 
-    let output = Compiler::add_tags_to_lines(original_text, Vec::new())
+    let (output, _) = Compiler::tag_lines(original_text, Vec::new())
         .unwrap()
         .unwrap();
 
