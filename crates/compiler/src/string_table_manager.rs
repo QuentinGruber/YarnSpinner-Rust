@@ -2,7 +2,6 @@
 
 use crate::output::StringInfo;
 use crate::prelude::*;
-use crc32fast;
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use yarnspinner_core::prelude::*;
@@ -56,7 +55,7 @@ impl StringTableManager {
 
                     (!self.contains_key(&id)).then_some(id)
                 })
-                .expect(&format!("Internal error: string table failed to find a non-colliding hash for \"{candidate_seed}\" after {MAX_ATTEMPTS} attempts"));
+                .unwrap_or_else(|| panic!("Internal error: string table failed to find a non-colliding hash for \"{candidate_seed}\" after {MAX_ATTEMPTS} attempts"));
 
             let string_info = StringInfo {
                 is_implicit_tag: true,

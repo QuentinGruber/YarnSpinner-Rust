@@ -1,4 +1,4 @@
-// Generated from .\YarnSpinnerParser.g4 by ANTLR 4.8
+// Generated from third-party\YarnSpinner\YarnSpinner.Compiler\YarnSpinnerParser.g4 by ANTLR 4.8
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -8,26 +8,28 @@
 #![allow(unused_braces)]
 use super::yarnspinnerparserlistener::*;
 use super::yarnspinnerparservisitor::*;
+use antlr_rust::PredictionContextCache;
+use antlr_rust::TokenSource;
 use antlr_rust::atn::{ATN, INVALID_ALT};
 use antlr_rust::atn_deserializer::ATNDeserializer;
 use antlr_rust::dfa::DFA;
 use antlr_rust::error_strategy::{DefaultErrorStrategy, ErrorStrategy};
 use antlr_rust::errors::*;
 use antlr_rust::int_stream::EOF;
-use antlr_rust::lazy_static;
 use antlr_rust::parser::{BaseParser, Parser, ParserNodeType, ParserRecog};
 use antlr_rust::parser_atn_simulator::ParserATNSimulator;
-use antlr_rust::parser_rule_context::{cast, cast_mut, BaseParserRuleContext, ParserRuleContext};
+use antlr_rust::parser_rule_context::{BaseParserRuleContext, ParserRuleContext, cast, cast_mut};
 use antlr_rust::recognizer::{Actions, Recognizer};
 use antlr_rust::rule_context::{BaseRuleContext, CustomRuleContext, RuleContext};
-use antlr_rust::token::{CommonToken, OwningToken, Token, TOKEN_EOF};
+use antlr_rust::token::{OwningToken, TOKEN_EOF, Token};
 use antlr_rust::token_factory::{CommonTokenFactory, TokenAware, TokenFactory};
 use antlr_rust::token_stream::TokenStream;
 use antlr_rust::tree::*;
 use antlr_rust::vocabulary::{Vocabulary, VocabularyImpl};
-use antlr_rust::TokenSource;
-use antlr_rust::{InputStream, PredictionContextCache};
+
+use antlr_rust::lazy_static;
 use antlr_rust::{TidAble, TidExt};
+
 use std::any::{Any, TypeId};
 use std::borrow::{Borrow, BorrowMut};
 use std::cell::RefCell;
@@ -98,26 +100,29 @@ pub const EXPRESSION_END: isize = 58;
 pub const VAR_ID: isize = 59;
 pub const DOT: isize = 60;
 pub const NUMBER: isize = 61;
-pub const COMMAND_WS: isize = 62;
-pub const COMMAND_IF: isize = 63;
-pub const COMMAND_ELSEIF: isize = 64;
-pub const COMMAND_ELSE: isize = 65;
-pub const COMMAND_SET: isize = 66;
-pub const COMMAND_ENDIF: isize = 67;
-pub const COMMAND_CALL: isize = 68;
-pub const COMMAND_DECLARE: isize = 69;
-pub const COMMAND_JUMP: isize = 70;
-pub const COMMAND_ENUM: isize = 71;
-pub const COMMAND_CASE: isize = 72;
-pub const COMMAND_ENDENUM: isize = 73;
-pub const COMMAND_LOCAL: isize = 74;
-pub const COMMAND_END: isize = 75;
-pub const COMMAND_TEXT_END: isize = 76;
-pub const COMMAND_EXPRESSION_START: isize = 77;
-pub const COMMAND_TEXT: isize = 78;
-pub const TYPE_STRING: isize = 79;
-pub const TYPE_NUMBER: isize = 80;
-pub const TYPE_BOOL: isize = 81;
+pub const COMMAND_NEWLINE: isize = 62;
+pub const COMMAND_WS: isize = 63;
+pub const COMMAND_IF: isize = 64;
+pub const COMMAND_ELSEIF: isize = 65;
+pub const COMMAND_ELSE: isize = 66;
+pub const COMMAND_SET: isize = 67;
+pub const COMMAND_ENDIF: isize = 68;
+pub const COMMAND_CALL: isize = 69;
+pub const COMMAND_DECLARE: isize = 70;
+pub const COMMAND_JUMP: isize = 71;
+pub const COMMAND_ENUM: isize = 72;
+pub const COMMAND_CASE: isize = 73;
+pub const COMMAND_ENDENUM: isize = 74;
+pub const COMMAND_LOCAL: isize = 75;
+pub const COMMAND_END: isize = 76;
+pub const COMMAND_TEXT_NEWLINE: isize = 77;
+pub const COMMAND_TEXT_END: isize = 78;
+pub const COMMAND_EXPRESSION_START: isize = 79;
+pub const COMMAND_TEXT: isize = 80;
+pub const COMMAND_ID_NEWLINE: isize = 81;
+pub const TYPE_STRING: isize = 82;
+pub const TYPE_NUMBER: isize = 83;
+pub const TYPE_BOOL: isize = 84;
 pub const RULE_dialogue: usize = 0;
 pub const RULE_file_hashtag: usize = 1;
 pub const RULE_node: usize = 2;
@@ -173,7 +178,7 @@ pub const ruleNames: [&'static str; 26] = [
     "jump_statement",
 ];
 
-pub const _LITERAL_NAMES: [Option<&'static str>; 82] = [
+pub const _LITERAL_NAMES: [Option<&'static str>; 85] = [
     None,
     None,
     None,
@@ -241,7 +246,9 @@ pub const _LITERAL_NAMES: [Option<&'static str>; 82] = [
     None,
     None,
     None,
+    None,
     Some("'endif'"),
+    None,
     None,
     None,
     None,
@@ -253,11 +260,12 @@ pub const _LITERAL_NAMES: [Option<&'static str>; 82] = [
     None,
     Some("'{'"),
     None,
+    None,
     Some("'string'"),
     Some("'number'"),
     Some("'bool'"),
 ];
-pub const _SYMBOLIC_NAMES: [Option<&'static str>; 82] = [
+pub const _SYMBOLIC_NAMES: [Option<&'static str>; 85] = [
     None,
     Some("INDENT"),
     Some("DEDENT"),
@@ -320,6 +328,7 @@ pub const _SYMBOLIC_NAMES: [Option<&'static str>; 82] = [
     Some("VAR_ID"),
     Some("DOT"),
     Some("NUMBER"),
+    Some("COMMAND_NEWLINE"),
     Some("COMMAND_WS"),
     Some("COMMAND_IF"),
     Some("COMMAND_ELSEIF"),
@@ -334,9 +343,11 @@ pub const _SYMBOLIC_NAMES: [Option<&'static str>; 82] = [
     Some("COMMAND_ENDENUM"),
     Some("COMMAND_LOCAL"),
     Some("COMMAND_END"),
+    Some("COMMAND_TEXT_NEWLINE"),
     Some("COMMAND_TEXT_END"),
     Some("COMMAND_EXPRESSION_START"),
     Some("COMMAND_TEXT"),
+    Some("COMMAND_ID_NEWLINE"),
     Some("TYPE_STRING"),
     Some("TYPE_NUMBER"),
     Some("TYPE_BOOL"),
@@ -1992,6 +2003,7 @@ impl<'input> HashtagContextExt<'input> {
             },
         ))
     }
+
     fn new(
         parent: Option<Rc<dyn YarnSpinnerParserContext<'input> + 'input>>,
         invoking_state: isize,
@@ -7255,9 +7267,8 @@ lazy_static! {
     };
 }
 
-const _serializedATN: &'static str =
-    "\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\x53\u{13d}\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\x09\
+const _serializedATN: &'static str = "\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
+	\x56\u{13d}\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\x09\
 	\x05\x04\x06\x09\x06\x04\x07\x09\x07\x04\x08\x09\x08\x04\x09\x09\x09\x04\
 	\x0a\x09\x0a\x04\x0b\x09\x0b\x04\x0c\x09\x0c\x04\x0d\x09\x0d\x04\x0e\x09\
 	\x0e\x04\x0f\x09\x0f\x04\x10\x09\x10\x04\x11\x09\x11\x04\x12\x09\x12\x04\
@@ -7341,8 +7352,8 @@ const _serializedATN: &'static str =
 	\x02\x7f\x77\x03\x02\x02\x02\x7f\x7b\x03\x02\x02\x02\u{80}\u{81}\x03\x02\
 	\x02\x02\u{81}\x7f\x03\x02\x02\x02\u{81}\u{82}\x03\x02\x02\x02\u{82}\x11\
 	\x03\x02\x02\x02\u{83}\u{84}\x07\x0c\x02\x02\u{84}\u{85}\x07\x1c\x02\x02\
-	\u{85}\x13\x03\x02\x02\x02\u{86}\u{87}\x07\x11\x02\x02\u{87}\u{88}\x07\x41\
-	\x02\x02\u{88}\u{89}\x05\x16\x0c\x02\u{89}\u{8a}\x07\x4d\x02\x02\u{8a}\x15\
+	\u{85}\x13\x03\x02\x02\x02\u{86}\u{87}\x07\x11\x02\x02\u{87}\u{88}\x07\x42\
+	\x02\x02\u{88}\u{89}\x05\x16\x0c\x02\u{89}\u{8a}\x07\x4e\x02\x02\u{8a}\x15\
 	\x03\x02\x02\x02\u{8b}\u{8c}\x08\x0c\x01\x02\u{8c}\u{8d}\x07\x36\x02\x02\
 	\u{8d}\u{8e}\x05\x16\x0c\x02\u{8e}\u{8f}\x07\x37\x02\x02\u{8f}\u{96}\x03\
 	\x02\x02\x02\u{90}\u{91}\x07\x32\x02\x02\u{91}\u{96}\x05\x16\x0c\x0a\u{92}\
@@ -7376,29 +7387,29 @@ const _serializedATN: &'static str =
 	\u{c8}\u{c9}\x03\x02\x02\x02\u{c9}\u{cc}\x03\x02\x02\x02\u{ca}\u{c8}\x03\
 	\x02\x02\x02\u{cb}\u{cd}\x05\x24\x13\x02\u{cc}\u{cb}\x03\x02\x02\x02\u{cc}\
 	\u{cd}\x03\x02\x02\x02\u{cd}\u{ce}\x03\x02\x02\x02\u{ce}\u{cf}\x07\x11\x02\
-	\x02\u{cf}\u{d0}\x07\x45\x02\x02\u{d0}\u{d1}\x07\x4d\x02\x02\u{d1}\x1f\x03\
-	\x02\x02\x02\u{d2}\u{d3}\x07\x11\x02\x02\u{d3}\u{d4}\x07\x41\x02\x02\u{d4}\
-	\u{d5}\x05\x16\x0c\x02\u{d5}\u{d9}\x07\x4d\x02\x02\u{d6}\u{d8}\x05\x0c\x07\
+	\x02\u{cf}\u{d0}\x07\x46\x02\x02\u{d0}\u{d1}\x07\x4e\x02\x02\u{d1}\x1f\x03\
+	\x02\x02\x02\u{d2}\u{d3}\x07\x11\x02\x02\u{d3}\u{d4}\x07\x42\x02\x02\u{d4}\
+	\u{d5}\x05\x16\x0c\x02\u{d5}\u{d9}\x07\x4e\x02\x02\u{d6}\u{d8}\x05\x0c\x07\
 	\x02\u{d7}\u{d6}\x03\x02\x02\x02\u{d8}\u{db}\x03\x02\x02\x02\u{d9}\u{d7}\
 	\x03\x02\x02\x02\u{d9}\u{da}\x03\x02\x02\x02\u{da}\x21\x03\x02\x02\x02\u{db}\
-	\u{d9}\x03\x02\x02\x02\u{dc}\u{dd}\x07\x11\x02\x02\u{dd}\u{de}\x07\x42\x02\
-	\x02\u{de}\u{df}\x05\x16\x0c\x02\u{df}\u{e3}\x07\x4d\x02\x02\u{e0}\u{e2}\
+	\u{d9}\x03\x02\x02\x02\u{dc}\u{dd}\x07\x11\x02\x02\u{dd}\u{de}\x07\x43\x02\
+	\x02\u{de}\u{df}\x05\x16\x0c\x02\u{df}\u{e3}\x07\x4e\x02\x02\u{e0}\u{e2}\
 	\x05\x0c\x07\x02\u{e1}\u{e0}\x03\x02\x02\x02\u{e2}\u{e5}\x03\x02\x02\x02\
 	\u{e3}\u{e1}\x03\x02\x02\x02\u{e3}\u{e4}\x03\x02\x02\x02\u{e4}\x23\x03\x02\
 	\x02\x02\u{e5}\u{e3}\x03\x02\x02\x02\u{e6}\u{e7}\x07\x11\x02\x02\u{e7}\u{e8}\
-	\x07\x43\x02\x02\u{e8}\u{ec}\x07\x4d\x02\x02\u{e9}\u{eb}\x05\x0c\x07\x02\
+	\x07\x44\x02\x02\u{e8}\u{ec}\x07\x4e\x02\x02\u{e9}\u{eb}\x05\x0c\x07\x02\
 	\u{ea}\u{e9}\x03\x02\x02\x02\u{eb}\u{ee}\x03\x02\x02\x02\u{ec}\u{ea}\x03\
 	\x02\x02\x02\u{ec}\u{ed}\x03\x02\x02\x02\u{ed}\x25\x03\x02\x02\x02\u{ee}\
-	\u{ec}\x03\x02\x02\x02\u{ef}\u{f0}\x07\x11\x02\x02\u{f0}\u{f1}\x07\x44\x02\
+	\u{ec}\x03\x02\x02\x02\u{ef}\u{f0}\x07\x11\x02\x02\u{f0}\u{f1}\x07\x45\x02\
 	\x02\u{f1}\u{f2}\x05\x1a\x0e\x02\u{f2}\u{f3}\x09\x07\x02\x02\u{f3}\u{f4}\
-	\x05\x16\x0c\x02\u{f4}\u{f5}\x07\x4d\x02\x02\u{f5}\x27\x03\x02\x02\x02\u{f6}\
-	\u{f7}\x07\x11\x02\x02\u{f7}\u{f8}\x07\x46\x02\x02\u{f8}\u{f9}\x05\x1c\x0f\
-	\x02\u{f9}\u{fa}\x07\x4d\x02\x02\u{fa}\x29\x03\x02\x02\x02\u{fb}\u{fc}\x07\
-	\x11\x02\x02\u{fc}\u{fd}\x05\x2c\x17\x02\u{fd}\u{101}\x07\x4e\x02\x02\u{fe}\
+	\x05\x16\x0c\x02\u{f4}\u{f5}\x07\x4e\x02\x02\u{f5}\x27\x03\x02\x02\x02\u{f6}\
+	\u{f7}\x07\x11\x02\x02\u{f7}\u{f8}\x07\x47\x02\x02\u{f8}\u{f9}\x05\x1c\x0f\
+	\x02\u{f9}\u{fa}\x07\x4e\x02\x02\u{fa}\x29\x03\x02\x02\x02\u{fb}\u{fc}\x07\
+	\x11\x02\x02\u{fc}\u{fd}\x05\x2c\x17\x02\u{fd}\u{101}\x07\x50\x02\x02\u{fe}\
 	\u{100}\x05\x12\x0a\x02\u{ff}\u{fe}\x03\x02\x02\x02\u{100}\u{103}\x03\x02\
 	\x02\x02\u{101}\u{ff}\x03\x02\x02\x02\u{101}\u{102}\x03\x02\x02\x02\u{102}\
-	\x2b\x03\x02\x02\x02\u{103}\u{101}\x03\x02\x02\x02\u{104}\u{10a}\x07\x50\
-	\x02\x02\u{105}\u{106}\x07\x4f\x02\x02\u{106}\u{107}\x05\x16\x0c\x02\u{107}\
+	\x2b\x03\x02\x02\x02\u{103}\u{101}\x03\x02\x02\x02\u{104}\u{10a}\x07\x52\
+	\x02\x02\u{105}\u{106}\x07\x51\x02\x02\u{106}\u{107}\x05\x16\x0c\x02\u{107}\
 	\u{108}\x07\x3c\x02\x02\u{108}\u{10a}\x03\x02\x02\x02\u{109}\u{104}\x03\
 	\x02\x02\x02\u{109}\u{105}\x03\x02\x02\x02\u{10a}\u{10d}\x03\x02\x02\x02\
 	\u{10b}\u{109}\x03\x02\x02\x02\u{10b}\u{10c}\x03\x02\x02\x02\u{10c}\x2d\
@@ -7414,15 +7425,15 @@ const _serializedATN: &'static str =
 	\u{121}\x03\x02\x02\x02\u{120}\u{11e}\x03\x02\x02\x02\u{121}\u{123}\x07\
 	\x04\x02\x02\u{122}\u{11a}\x03\x02\x02\x02\u{122}\u{123}\x03\x02\x02\x02\
 	\u{123}\x31\x03\x02\x02\x02\u{124}\u{125}\x07\x11\x02\x02\u{125}\u{126}\
-	\x07\x47\x02\x02\u{126}\u{127}\x05\x1a\x0e\x02\u{127}\u{128}\x07\x21\x02\
+	\x07\x48\x02\x02\u{126}\u{127}\x05\x1a\x0e\x02\u{127}\u{128}\x07\x21\x02\
 	\x02\u{128}\u{12b}\x05\x18\x0d\x02\u{129}\u{12a}\x07\x39\x02\x02\u{12a}\
 	\u{12c}\x07\x3b\x02\x02\u{12b}\u{129}\x03\x02\x02\x02\u{12b}\u{12c}\x03\
-	\x02\x02\x02\u{12c}\u{12d}\x03\x02\x02\x02\u{12d}\u{12e}\x07\x4d\x02\x02\
+	\x02\x02\x02\u{12c}\u{12d}\x03\x02\x02\x02\u{12d}\u{12e}\x07\x4e\x02\x02\
 	\u{12e}\x33\x03\x02\x02\x02\u{12f}\u{130}\x07\x11\x02\x02\u{130}\u{131}\
-	\x07\x48\x02\x02\u{131}\u{132}\x07\x09\x02\x02\u{132}\u{13b}\x07\x4d\x02\
-	\x02\u{133}\u{134}\x07\x11\x02\x02\u{134}\u{135}\x07\x48\x02\x02\u{135}\
+	\x07\x49\x02\x02\u{131}\u{132}\x07\x09\x02\x02\u{132}\u{13b}\x07\x4e\x02\
+	\x02\u{133}\u{134}\x07\x11\x02\x02\u{134}\u{135}\x07\x49\x02\x02\u{135}\
 	\u{136}\x07\x12\x02\x02\u{136}\u{137}\x05\x16\x0c\x02\u{137}\u{138}\x07\
-	\x3c\x02\x02\u{138}\u{139}\x07\x4d\x02\x02\u{139}\u{13b}\x03\x02\x02\x02\
+	\x3c\x02\x02\u{138}\u{139}\x07\x4e\x02\x02\u{139}\u{13b}\x03\x02\x02\x02\
 	\u{13a}\u{12f}\x03\x02\x02\x02\u{13a}\u{133}\x03\x02\x02\x02\u{13b}\x35\
 	\x03\x02\x02\x02\x22\x39\x3f\x47\x50\x55\x64\x68\x6c\x71\x79\x7f\u{81}\u{95}\
 	\u{a6}\u{a8}\u{b2}\u{b9}\u{bf}\u{c8}\u{cc}\u{d9}\u{e3}\u{ec}\u{101}\u{109}\
