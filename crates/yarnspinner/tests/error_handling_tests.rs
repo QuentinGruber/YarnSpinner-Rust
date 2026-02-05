@@ -113,3 +113,20 @@ fn test_compiling_same_file_twice_fails() {
             .any(|d| d.message.contains("Duplicate line ID line:794945"))
     );
 }
+
+#[test]
+fn test_empty_nodes_generate_warnings() {
+    let result = Compiler::from_test_source("").compile().unwrap();
+
+    let warnings = result
+        .warnings
+        .iter()
+        .filter(|d| matches!(d.severity, DiagnosticSeverity::Warning))
+        .collect::<Vec<_>>();
+
+    assert_eq!(warnings.len(), 1);
+    assert_eq!(
+        warnings.first().unwrap().message,
+        "Node \"Start\" is empty and will not be included in the compiled output."
+    );
+}

@@ -174,3 +174,25 @@ fn test_line_is_last_before_another_node_not_tagged() {
 fn contains_last_line_tag(info: &StringInfo) -> bool {
     info.metadata.contains(&"lastline".to_owned())
 }
+
+#[test]
+fn test_comments_arent_tagged() {
+    let source = "title: Start\n---\n\\\\\n===";
+
+    // ensuring the base text compiles fine as is
+    let result = Compiler::from_test_source(source)
+        .with_compilation_type(CompilationType::StringsOnly)
+        .compile();
+
+    assert!(matches!(result, Ok(_)));
+
+    // Tagging the lines
+    let (tagged_version, _) = Compiler::tag_lines(source, vec![]).unwrap().unwrap();
+
+    // recompiling, we should have no errors
+    let result = Compiler::from_test_source(&tagged_version)
+        .with_compilation_type(CompilationType::StringsOnly)
+        .compile();
+
+    assert!(matches!(result, Ok(_)));
+}

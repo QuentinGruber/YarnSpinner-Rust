@@ -292,3 +292,78 @@ fn test_debug_output_is_produced() {
     assert_eq!(2, first_line_info.position.unwrap().line);
     assert_eq!(0, first_line_info.position.unwrap().character);
 }
+
+/// Quite a slow text (few seconds), it tagged over 30_000 lines.
+#[test]
+fn test_line_collision_tagging() {
+    let path_0 = test_data_path().join("TestCases/Duplicates/lipsum1.yarn");
+    let path_1 = test_data_path().join("TestCases/Duplicates/lipsum2.yarn");
+    let path_2 = test_data_path().join("TestCases/Duplicates/lipsum3.yarn");
+
+    // compiling the untagged but heavily duped files
+    // there should be no errors and no tags
+    let result = Compiler::new()
+        .read_file(&path_0)
+        .read_file(&path_1)
+        .read_file(&path_2)
+        .with_compilation_type(CompilationType::StringsOnly)
+        .compile()
+        .unwrap();
+
+    let total_lines = result.string_table.len();
+    let total_untagged_lines = result
+        .string_table
+        .iter()
+        .filter(|(_, s)| s.is_implicit_tag)
+        .count();
+
+    // at this stage these should be the same
+    assert_eq!(total_untagged_lines, total_lines);
+
+    let mut existing_tags = result
+        .string_table
+        .iter()
+        .filter(|(_, s)| !s.is_implicit_tag)
+        .map(|(id, _)| id)
+        .cloned()
+        .collect::<Vec<_>>();
+
+    assert_eq!(existing_tags.len(), 0);
+
+    // now we tag every line
+    // combine that into a new compilation job
+    // and see if there are any dupes
+    let mut tagged_line_content: Vec<String> = Vec::new();
+    for path in [path_0, path_1, path_2] {
+        let mut content = std::fs::read_to_string(path).unwrap();
+
+        // File may be in UTF-8 with BOM encoding
+        if content.starts_with('\u{FEFF}') {
+            content = content.strip_prefix('\u{FEFF}').unwrap().to_owned();
+        }
+
+        let (tagged_version, new_existing_tags) = Compiler::tag_lines(content, existing_tags)
+            .unwrap()
+            .unwrap();
+
+        tagged_line_content.push(tagged_version);
+        existing_tags = new_existing_tags
+    }
+
+    let tagged_file = File {
+        file_name: "tagged".to_string(),
+        source: tagged_line_content.join("\n"),
+    };
+    let result = Compiler::new().add_file(tagged_file).compile().unwrap();
+
+    let tagged_lines_count = result.string_table.len();
+    assert_eq!(tagged_lines_count, total_lines);
+
+    let total_untagged_lines = result
+        .string_table
+        .iter()
+        .filter(|(_, s)| s.is_implicit_tag)
+        .count();
+
+    assert_eq!(total_untagged_lines, 0);
+}
