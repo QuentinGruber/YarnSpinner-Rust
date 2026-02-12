@@ -184,7 +184,7 @@ fn test_comments_arent_tagged() {
         .with_compilation_type(CompilationType::StringsOnly)
         .compile();
 
-    assert!(matches!(result, Ok(_)));
+    assert!(result.is_ok());
 
     // Tagging the lines
     let (tagged_version, _) = Compiler::tag_lines(source, vec![]).unwrap().unwrap();
@@ -194,5 +194,5 @@ fn test_comments_arent_tagged() {
         .with_compilation_type(CompilationType::StringsOnly)
         .compile();
 
-    assert!(matches!(result, Ok(_)));
+    assert!(result.is_ok());
 }

@@ -55,25 +55,39 @@ impl TestPlan {
 
         for current_step in self.steps.iter().skip(self.current_test_plan_step) {
             self.current_test_plan_step += 1;
-            if current_step.expected_step_type == ExpectedStepType::Option {
-                let Some(StepValue::String(line)) = current_step.value.clone() else {
-                    panic!("Expected option line to be a string");
-                };
 
-                self.next_expected_options.push(ProcessedOption {
-                    line,
-                    enabled: current_step.expect_option_enabled,
-                });
-            } else {
-                self.next_expected_step = current_step.expected_step_type;
-                self.next_step_value.clone_from(&current_step.value);
-                return;
+            match current_step.expected_step_type {
+                ExpectedStepType::Option => {
+                    let Some(StepValue::String(line)) = current_step.value.clone() else {
+                        panic!("Expected option line to be a string");
+                    };
+
+                    self.next_expected_options.push(ProcessedOption {
+                        line,
+                        enabled: current_step.expect_option_enabled,
+                    });
+                }
+                ExpectedStepType::Line | ExpectedStepType::Command | ExpectedStepType::Select => {
+                    self.next_expected_step = current_step.expected_step_type;
+                    self.next_step_value.clone_from(&current_step.value);
+                    return;
+                }
+                ExpectedStepType::Stop => {
+                    self.next_expected_step = current_step.expected_step_type;
+                    return;
+                }
+                ExpectedStepType::Set => todo!(),
+                ExpectedStepType::Run => todo!(),
             }
         }
 
         // We've fallen off the end of the test plan step list. We
         // expect a stop here.
         self.next_expected_step = ExpectedStepType::Stop;
+    }
+
+    pub fn current_step(self) -> Step {
+        self.steps[self.current_test_plan_step].clone()
     }
 
     pub fn expect_line(mut self, line: impl Into<String>) -> Self {
@@ -93,6 +107,16 @@ impl TestPlan {
 
     pub fn then_select(mut self, selection: usize) -> Self {
         self.steps.push(Step::from_select(selection));
+        self
+    }
+
+    pub fn then_set(mut self, variable_name: impl Into<String>, value: impl Into<String>) -> Self {
+        self.steps.push(Step::from_set(variable_name, value));
+        self
+    }
+
+    pub fn then_run(mut self, node_name: impl Into<String>) -> Self {
+        self.steps.push(Step::from_run(node_name));
         self
     }
 

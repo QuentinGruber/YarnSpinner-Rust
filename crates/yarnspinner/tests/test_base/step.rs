@@ -17,6 +17,7 @@ pub(crate) struct Step {
 pub enum StepValue {
     String(String),
     Number(usize),
+    StringPair(String, String),
 }
 
 impl Step {
@@ -53,6 +54,19 @@ impl Step {
                 Self::with_value_and_type(value, expected_step_type)
             }
             ExpectedStepType::Stop => Self::with_expected_step_type(expected_step_type),
+            ExpectedStepType::Set => {
+                let variable_name = reader.read_next::<String>();
+                let value = reader.read_next::<String>();
+
+                Self::with_value_and_type(
+                    StepValue::StringPair(variable_name, value),
+                    expected_step_type,
+                )
+            }
+            ExpectedStepType::Run => {
+                let node_name = reader.read_next::<String>();
+                Self::with_value_and_type(node_name, expected_step_type)
+            }
         }
     }
 
@@ -74,6 +88,17 @@ impl Step {
 
     pub(crate) fn from_stop() -> Self {
         Self::with_expected_step_type(ExpectedStepType::Stop)
+    }
+
+    pub(crate) fn from_set(variable_name: impl Into<String>, value: impl Into<String>) -> Self {
+        Self::with_value_and_type(
+            StepValue::StringPair(variable_name.into(), value.into()),
+            ExpectedStepType::Set,
+        )
+    }
+
+    pub(crate) fn from_run(node_name: impl Into<String>) -> Self {
+        Self::with_value_and_type(node_name.into(), ExpectedStepType::Run)
     }
 
     fn with_value_and_type(
@@ -155,6 +180,18 @@ pub enum ExpectedStepType {
     // expecting to stop the test here (this is optional - a
     // 'stop' at the end of a test plan is assumed)
     Stop,
+
+    /// sets a variable to a value
+    Set,
+
+    /// runs a new node.
+    Run,
+}
+
+impl ExpectedStepType {
+    pub(crate) fn is_blocking(&self) -> bool {
+        !matches!(self, Self::Set | Self::Run)
+    }
 }
 
 impl FromStr for ExpectedStepType {
@@ -167,6 +204,8 @@ impl FromStr for ExpectedStepType {
             "select" => Ok(Self::Select),
             "command" => Ok(Self::Command),
             "stop" => Ok(Self::Stop),
+            "set" => Ok(Self::Set),
+            "run" => Ok(Self::Run),
             _ => Err(()),
         }
     }
