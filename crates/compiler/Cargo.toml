@@ -11,7 +11,7 @@ description = "Compiler for Yarn Spinner for Rust, the friendly tool for writing
 
 [features]
 default = [  ]
-serde = [ "dep:serde", "bevy?/serialize", "yarnspinner_core/serde" ]
+serde = [ "dep:serde", "dep:serde_json", "bevy?/serialize", "yarnspinner_core/serde" ]
 bevy = [ "dep:bevy", "yarnspinner_core/bevy" ]
 
 [dependencies]
@@ -22,9 +22,12 @@ yarnspinner_internal_shared = { path = "../internal_shared", version = "0.1.0" }
 yarnspinner_core = { path = "../core", version = "0.7.0" }
 annotate-snippets = "0.10"
 serde = { version = "1", features = [ "derive" ], optional = true }
+serde_json = { version = "1", optional = true }
 bevy = { version = "0.18", default-features = false, optional = true }
 rand = { version = "0.9", features = [ "small_rng" ] }
-crc32fast = "1.5.0"
+crc32fast = "1.5"
+globset = "0.4"
+walkdir = "2.5"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 instant = { version = "0.1.12", features = [

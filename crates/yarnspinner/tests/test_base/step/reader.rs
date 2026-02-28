@@ -43,10 +43,10 @@ impl<'a> Reader<'a> {
             }
             string.push(character);
 
-            if let Some(next) = self.peek_char() {
-                if next.is_alphanumeric() || next == '_' {
-                    continue;
-                }
+            if let Some(next) = self.peek_char()
+                && (next.is_alphanumeric() || next == '_')
+            {
+                continue;
             }
             break;
         }

@@ -17,6 +17,7 @@ pub(crate) mod listeners;
 mod output;
 mod parser;
 pub(crate) mod parser_rule_context_ext;
+pub mod project;
 mod string_table_manager;
 pub(crate) mod token_ext;
 pub(crate) mod visitors;
@@ -34,6 +35,7 @@ pub mod prelude {
         compiler::{CompilationType, Compiler, File},
         listeners::{Diagnostic, DiagnosticSeverity, DiagnosticVec},
         output::*,
+        project::*,
     };
     pub(crate) use yarnspinner_core::prelude::*;
     pub(crate) use yarnspinner_internal_shared::prelude::*;
