@@ -266,7 +266,7 @@ a {1 + 3} cool expression
         let string_table = result.string_table;
         assert_eq!(string_table.len(), 3);
         assert_eq!(
-            string_table[&"line:test.yarn-test-0".into()],
+            string_table[&"line:1337986088".into()],
             StringInfo {
                 text: "foo".to_string(),
                 node_name: "test".to_string(),
@@ -277,7 +277,7 @@ a {1 + 3} cool expression
             }
         );
         assert_eq!(
-            string_table[&"line:test.yarn-test-1".into()],
+            string_table[&"line:952581310".into()],
             StringInfo {
                 text: "bar".to_string(),
                 node_name: "test".to_string(),
@@ -288,7 +288,7 @@ a {1 + 3} cool expression
             }
         );
         assert_eq!(
-            string_table[&"line:test.yarn-test-2".into()],
+            string_table[&"line:2714660100".into()],
             StringInfo {
                 text: "a {0} cool expression".to_string(),
                 node_name: "test".to_string(),
