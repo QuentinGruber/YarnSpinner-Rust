@@ -58,6 +58,11 @@ impl Step {
                 let variable_name = reader.read_next::<String>();
                 let value = reader.read_next::<String>();
 
+                assert!(
+                    variable_name.starts_with("$"),
+                    "Variables must start with $"
+                );
+
                 Self::with_value_and_type(
                     StepValue::StringPair(variable_name, value),
                     expected_step_type,

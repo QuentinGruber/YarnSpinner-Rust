@@ -40,7 +40,7 @@ impl TestPlan {
         }
     }
 
-    pub fn next(&mut self) {
+    pub fn next(&mut self, dialogue: &mut Dialogue) {
         // step through the test plan until we hit an expectation to
         // see a line, option, or command. specifically, we're waiting
         // to see if we got a Line, Select, Command or Assert step
@@ -76,8 +76,30 @@ impl TestPlan {
                     self.next_expected_step = current_step.expected_step_type;
                     return;
                 }
-                ExpectedStepType::Set => todo!(),
-                ExpectedStepType::Run => todo!(),
+                ExpectedStepType::Set => {
+                    let Some(StepValue::StringPair(var, value)) = current_step.value.clone() else {
+                        panic!("Expected run line to be a pair of strings");
+                    };
+
+                    // .unwrap() used to panic on error as this is used only in Test
+                    let current_value = dialogue.variable_storage().get(&var).unwrap();
+                    let new_value = match current_value {
+                        YarnValue::Number(_) => YarnValue::Number(value.parse::<f32>().unwrap()),
+                        YarnValue::String(_) => YarnValue::String(value),
+                        YarnValue::Boolean(_) => YarnValue::Boolean(value.parse::<bool>().unwrap()),
+                    };
+
+                    println!("INFO: Variable {} set to {}", var, new_value);
+                    dialogue.variable_storage_mut().set(var, new_value).unwrap();
+                }
+                ExpectedStepType::Run => {
+                    let Some(StepValue::String(next_node)) = current_step.value.clone() else {
+                        panic!("Expected run line to be a string");
+                    };
+
+                    println!("INFO: Jumped to node {}", next_node);
+                    let _ = dialogue.set_node(next_node);
+                }
             }
         }
 
@@ -86,8 +108,8 @@ impl TestPlan {
         self.next_expected_step = ExpectedStepType::Stop;
     }
 
-    pub fn current_step(self) -> Step {
-        self.steps[self.current_test_plan_step].clone()
+    pub fn current_step(&self) -> Option<Step> {
+        self.steps.get(self.current_test_plan_step).cloned()
     }
 
     pub fn expect_line(mut self, line: impl Into<String>) -> Self {

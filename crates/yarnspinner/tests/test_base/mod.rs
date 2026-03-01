@@ -152,6 +152,15 @@ impl TestBase {
         #[cfg(feature = "bevy")]
         let mut world = World::default();
 
+        if let Some(test_plan) = self.test_plan.as_mut() {
+            while test_plan
+                .current_step()
+                .is_some_and(|step| !step.expected_step_type.is_blocking())
+            {
+                test_plan.next(&mut self.dialogue);
+            }
+        }
+
         while self.dialogue.can_continue() {
             #[cfg(feature = "bevy")]
             let events = self
@@ -171,7 +180,7 @@ impl TestBase {
                         let Some(test_plan) = self.test_plan.as_mut() else {
                             continue;
                         };
-                        test_plan.next();
+                        test_plan.next(&mut self.dialogue);
 
                         assert_eq!(
                             ExpectedStepType::Line,
@@ -202,7 +211,7 @@ impl TestBase {
                             continue;
                         };
 
-                        test_plan.next();
+                        test_plan.next(&mut self.dialogue);
                         assert_eq!(
                             ExpectedStepType::Select,
                             test_plan.next_expected_step,
@@ -229,7 +238,8 @@ impl TestBase {
                         let Some(test_plan) = self.test_plan.as_mut() else {
                             continue;
                         };
-                        test_plan.next();
+
+                        test_plan.next(&mut self.dialogue);
                         assert_eq!(
                             ExpectedStepType::Command,
                             test_plan.next_expected_step,
@@ -255,7 +265,8 @@ impl TestBase {
                         let Some(test_plan) = self.test_plan.as_mut() else {
                             continue;
                         };
-                        test_plan.next();
+
+                        test_plan.next(&mut self.dialogue);
                         assert_eq!(
                             ExpectedStepType::Stop,
                             test_plan.next_expected_step,

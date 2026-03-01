@@ -306,7 +306,7 @@ fn test_selecting_option_from_inside_option_callback() {
             match event {
                 DialogueEvent::Line(line) => {
                     let test_plan = test_base.test_plan.as_mut().unwrap();
-                    test_plan.next();
+                    test_plan.next(&mut test_base.dialogue);
 
                     let expected_step = test_plan.next_expected_step;
                     let expected_value = test_plan.next_step_value.clone().unwrap();
@@ -314,7 +314,11 @@ fn test_selecting_option_from_inside_option_callback() {
                     assert_eq!(StepValue::String(line.text), expected_value);
                 }
                 DialogueEvent::Options(options) => {
-                    test_base.test_plan.as_mut().unwrap().next();
+                    test_base
+                        .test_plan
+                        .as_mut()
+                        .unwrap()
+                        .next(&mut test_base.dialogue);
                     let actual_options: Vec<_> = options
                         .into_iter()
                         .map(|o| ProcessedOption {
@@ -332,7 +336,7 @@ fn test_selecting_option_from_inside_option_callback() {
                 }
                 DialogueEvent::DialogueComplete => {
                     let test_plan = test_base.test_plan.as_mut().unwrap();
-                    test_plan.next();
+                    test_plan.next(&mut test_base.dialogue);
                     let expected_step = test_plan.next_expected_step;
                     assert_eq!(ExpectedStepType::Stop, expected_step);
                 }
