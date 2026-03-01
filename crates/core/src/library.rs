@@ -5,6 +5,7 @@ use alloc::borrow::Cow;
 use core::fmt::Display;
 
 use hashbrown::hash_map;
+use rand::{Rng, SeedableRng, rngs::SmallRng};
 
 /// A collection of functions that can be called from Yarn scripts.
 ///
@@ -77,19 +78,31 @@ impl Library {
             "number" => |value: YarnValue| f32::try_from(value).expect("Failed to convert a Yarn value to a number"),
             "bool" => |value: YarnValue| bool::try_from(value).expect("Failed to convert a Yarn value to a bool"),
             "format_invariant" => |value: f32| value.to_string(),
-            "random" => rand::random::<f32>,
-            "random_range" => |min: i32, max: i32| rand::random_range::<i32, _>(min..max),
+            "random" => || SmallRng::from_os_rng().random_range(0.0..1.0),
+            "random_range" => |min: f32, max: f32| {
+                if let Some(min) = min.as_int()
+                    && let Some(max_inclusive) = max.as_int()
+                {
+                    return SmallRng::from_os_rng().random_range(min..=max_inclusive) as f32;
+                }
+                SmallRng::from_os_rng().random_range(min..max)
+            },
             "random_range_float" => |min: f32, max: f32| rand::random_range::<f32, _>(min..=max),
-            "dice" => |sides: u32| rand::random_range::<u32, _>(1..=sides),
-            "round" => |value: f32| value.round(),
-            // "round_places" => Cannot round_places in rust
-            "floor" => |value: f32| value.floor(),
-            "ceil" => |value: f32| value.ceil(),
+            "dice" => |sides: u32| {
+                if sides == 0 {
+                    return 1;
+                }
+                SmallRng::from_os_rng().random_range(1..=sides)
+            },
+            "round" => |value: f32| value.round() as i32,
+            "round_places" => |value: f32, places: u32| value.round_places(places),
+            "floor" => |value: f32| value.floor() as i32,
+            "ceil" => |value: f32| value.ceil() as i32,
             "inc" => |value: f32| value.floor() as i32 + 1,
             "dec" => |value: f32| value.ceil() as i32 - 1,
             "decimal" => |value: f32| value.fract(),
-            "int" => |value: f32| value.trunc(),
-            // "format" => TODO: Need to implement an equivalent to C# formatter
+            "int" => |value: f32| value.trunc() as i32,
+            // "format" => TODO: Hard to do without dedicated crate. Is it useful ?
         );
         for r#type in [Type::Number, Type::String, Type::Boolean] {
             library.add_methods(r#type);
@@ -225,3 +238,40 @@ macro_rules! yarn_library {
     };
 }
 pub use yarn_library;
+
+trait FloatExt: Copy {
+    fn as_int(self) -> Option<i32>;
+    fn round_places(self, places: u32) -> Self;
+}
+
+impl FloatExt for f32 {
+    fn as_int(self) -> Option<i32> {
+        (self.fract().abs() <= f32::EPSILON).then_some(self as i32)
+    }
+
+    fn round_places(self, places: u32) -> Self {
+        let factor = 10_u32.pow(places) as f32;
+        (self * factor).round() / factor
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rounds_places() {
+        for (num, places, expected) in [
+            (1.0, 0, 1.0),
+            (1.2, 1, 1.2),
+            (0.4, 0, 0.0),
+            (43.132, 0, 43.0),
+            (1.1, 2, 1.1),
+            (123.123, 3, 123.123),
+            (-10.3, 1, -10.3),
+            (-11.99, 1, -12.0),
+        ] {
+            assert_eq!(expected, num.round_places(places));
+        }
+    }
+}
