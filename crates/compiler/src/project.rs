@@ -43,6 +43,9 @@ pub struct Project {
     /// If a file is matched by a pattern in `source_file_patterns`, and is also matched
     /// by a pattern in `exclude_file_patterns`, then it is not included in the value
     /// returned by `source_files()`
+    ///
+    /// Note: Unlike what is done in the C# version, you need to use the [`globset`] syntax to exclude a file.
+    /// `**/Ship.yarn`` to exclude all files named *Ship.yarn*.
     #[cfg_attr(feature = "serde", serde(rename = "excludeFiles", default))]
     pub exclude_file_patterns: Vec<String>,
 

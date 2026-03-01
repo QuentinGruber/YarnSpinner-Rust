@@ -77,7 +77,7 @@ impl Library {
             "number" => |value: YarnValue| f32::try_from(value).expect("Failed to convert a Yarn value to a number"),
             "bool" => |value: YarnValue| bool::try_from(value).expect("Failed to convert a Yarn value to a bool"),
             "format_invariant" => |value: f32| value.to_string(),
-            "random" => || rand::random::<f32>(),
+            "random" => rand::random::<f32>,
             "random_range" => |min: i32, max: i32| rand::random_range::<i32, _>(min..max),
             "random_range_float" => |min: f32, max: f32| rand::random_range::<f32, _>(min..=max),
             "dice" => |sides: u32| rand::random_range::<u32, _>(1..=sides),

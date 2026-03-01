@@ -65,7 +65,9 @@ fn test_projects_can_exclude_files() {
     // Given
     let path = space_demo_scripts_path().join("Space.yarnproject");
     let mut project = Project::load_from_file(path.clone()).unwrap();
-    project.exclude_file_patterns.push("Sally.yarn".to_owned());
+    project
+        .exclude_file_patterns
+        .push("**/Ship.yarn".to_owned());
 
     // When
     let relative_files = project
