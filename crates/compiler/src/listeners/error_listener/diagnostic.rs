@@ -1,6 +1,7 @@
 use crate::parser_rule_context_ext::ParserRuleContextExt;
 use crate::prelude::*;
-use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
+use annotate_snippets::renderer::DecorStyle;
+use annotate_snippets::{AnnotationKind, Level, Renderer, Snippet};
 use antlr_rust::rule_context::CustomRuleContext;
 use antlr_rust::token::Token;
 use antlr_rust::token_factory::TokenFactory;
@@ -108,43 +109,32 @@ impl Diagnostic {
 impl Display for Diagnostic {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let label = &self.message;
-        let annotation_type = match self.severity {
-            DiagnosticSeverity::Error => AnnotationType::Error,
-            DiagnosticSeverity::Warning => AnnotationType::Warning,
+        let level = match self.severity {
+            DiagnosticSeverity::Error => Level::ERROR,
+            DiagnosticSeverity::Warning => Level::WARNING,
         };
-        let snippet = Snippet {
-            title: Some(Annotation {
-                label: Some(label),
-                id: None,
-                annotation_type,
-            }),
-            footer: vec![],
-            slices: vec![Slice {
-                source: self.context.as_deref().unwrap_or("<unknown line>"),
-                line_start: self.start_line + 1,
-                origin: self.file_name.as_deref(),
-                fold: false,
-                annotations: vec![SourceAnnotation {
-                    label: "",
-                    annotation_type,
-                    range: convert_absolute_range_to_relative(self),
-                }],
-            }],
-        };
-        let renderer = Renderer::styled();
-        let annotations = renderer.render(snippet);
+        let report = level.primary_title(label).id("Y001").element(
+            Snippet::source(self.context.as_deref().unwrap_or("<unknown line>"))
+                .line_start(self.start_line + 1)
+                .path(self.file_name.as_deref())
+                .fold(false)
+                .annotation(AnnotationKind::Primary.span(convert_absolute_range_to_relative(self))),
+        );
+        // Using `plain` until https://github.com/tokio-rs/tracing/issues/3378 is resolved... bleh
+        let renderer = Renderer::plain().decor_style(DecorStyle::Unicode);
+        let annotations = renderer.render(&[report]);
         writeln!(f, "{annotations}")?;
 
         Ok(())
     }
 }
 
-fn convert_absolute_range_to_relative(diagnostic: &Diagnostic) -> (usize, usize) {
+fn convert_absolute_range_to_relative(diagnostic: &Diagnostic) -> Range<usize> {
     let Some(range) = diagnostic.range.as_ref() else {
-        return (0, 0);
+        return 0..1;
     };
     let Some(context) = diagnostic.context.as_ref() else {
-        return (0, 0);
+        return 0..1;
     };
 
     let relative_start_line = range.start.line - diagnostic.start_line;
@@ -165,7 +155,7 @@ fn convert_absolute_range_to_relative(diagnostic: &Diagnostic) -> (usize, usize)
     let mut char_indices = context.char_indices().map(|(i, _)| i);
     let byte_start = char_indices.clone().nth(relative_start).unwrap();
     let byte_end = char_indices.nth(relative_end).unwrap_or(byte_start);
-    (byte_start, byte_end)
+    byte_start..(byte_end + 1)
 }
 
 /// Trait implemented for `Vec<Diagnostic>` to provide utility methods.

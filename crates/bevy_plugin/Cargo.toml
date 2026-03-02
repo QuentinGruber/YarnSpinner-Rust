@@ -40,4 +40,4 @@ default-features = false
 features = [ "bevy_core_pipeline", "bevy_audio" ]
 
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
-glob = "0.3.1"
+glob = "0.3.3"
