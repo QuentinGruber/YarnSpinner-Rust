@@ -22,8 +22,11 @@ pub(crate) fn generate_code(mut state: CompilationIntermediate) -> CompilationIn
             .parsed_files
             .iter()
             .map(|(file, known_types)| {
+                let skip_nodes = state.skip_nodes.clone();
+
                 generate_code_for_file(
                     &mut state.tracking_nodes,
+                    skip_nodes,
                     known_types.clone(),
                     template.clone(),
                     file,
@@ -55,12 +58,14 @@ pub(crate) fn generate_code(mut state: CompilationIntermediate) -> CompilationIn
 
 fn generate_code_for_file<'a, 'b: 'a, 'input: 'a + 'b>(
     tracking_nodes: &mut HashSet<String>,
+    skip_nodes: HashSet<String>,
     known_types: KnownTypes,
     result_template: Compilation,
     file: &'a FileParseResult<'input>,
 ) -> Result<Compilation> {
     let compiler_listener = Box::new(CompilerListener::new(
         tracking_nodes.clone(),
+        skip_nodes.clone(),
         known_types,
         file.clone(),
     ));

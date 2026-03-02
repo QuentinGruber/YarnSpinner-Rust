@@ -232,7 +232,7 @@ fn test_sources() {
 #[test]
 #[should_panic]
 fn crashes_on_command_expression_evaluating_whitespace() {
-    let result = Compiler::from_test_source("<<{0} {\"   \"}>>")
+    let result = Compiler::from_test_source("<<{\"\"}{\"   \"}>>")
         .compile()
         .unwrap();
     TestBase::new()

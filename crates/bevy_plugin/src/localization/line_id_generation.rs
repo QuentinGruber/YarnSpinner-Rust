@@ -90,7 +90,7 @@ fn handle_yarn_file_events(
             yarn_file.string_table.clone(),
         ));
 
-        let Some(source_with_added_ids) = add_tags_to_lines(yarn_file)? else {
+        let Some((source_with_added_ids, _)) = add_tags_to_lines(yarn_file)? else {
             if matches!(event, AssetEvent::LoadedWithDependencies { .. }) {
                 continue;
             }
@@ -155,12 +155,12 @@ fn handle_yarn_file_events(
 }
 
 /// Adapted from <https://github.com/YarnSpinnerTool/YarnSpinner-Console/blob/main/src/YarnSpinner.Console/Commands/TagCommand.cs#L11>
-fn add_tags_to_lines(yarn_file: &YarnFile) -> YarnCompilerResult<Option<String>> {
+fn add_tags_to_lines(yarn_file: &YarnFile) -> YarnCompilerResult<Option<(String, Vec<LineId>)>> {
     let existing_tags = yarn_file
         .string_table
         .iter()
         .filter(|(_, string_info)| !string_info.is_implicit_tag)
         .map(|(key, _)| key.clone())
         .collect();
-    YarnCompiler::add_tags_to_lines(yarn_file.file.source.clone(), existing_tags)
+    YarnCompiler::tag_lines(yarn_file.file.source.clone(), existing_tags)
 }

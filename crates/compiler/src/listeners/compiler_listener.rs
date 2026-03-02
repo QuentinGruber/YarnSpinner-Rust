@@ -25,6 +25,8 @@ pub(crate) struct CompilerListener<'input> {
     pub(crate) program: Rc<RefCell<Program>>,
     /// the list of nodes we have to ensure we track visitation
     pub(crate) tracking_nodes: Rc<RefCell<HashSet<String>>>,
+    /// the list of the names of nodes we have said to skip
+    pub(crate) skip_nodes: Rc<RefCell<HashSet<String>>>,
     pub(crate) diagnostics: Rc<RefCell<Vec<Diagnostic>>>,
     pub(crate) types: KnownTypes,
     /// The current node to which instructions are being added.
@@ -41,6 +43,7 @@ pub(crate) struct CompilerListener<'input> {
 impl<'input> CompilerListener<'input> {
     pub(crate) fn new(
         tracking_nodes: HashSet<String>,
+        skip_nodes: HashSet<String>,
         types: KnownTypes,
         file: FileParseResult<'input>,
     ) -> Self {
@@ -48,6 +51,7 @@ impl<'input> CompilerListener<'input> {
             file,
             types,
             tracking_nodes: Rc::new(RefCell::new(tracking_nodes)),
+            skip_nodes: Rc::new(RefCell::new(skip_nodes)),
             current_node: Default::default(),
             current_debug_info: Default::default(),
             is_current_node_raw_text: Default::default(),
@@ -89,7 +93,7 @@ impl<'input> YarnSpinnerParserListener<'input> for CompilerListener<'input> {
                     .with_file_name(self.file.name.clone())
                     .with_parser_context(ctx, self.file.tokens()),
             );
-        } else {
+        } else if !self.skip_nodes.borrow().contains(name) {
             if !self.program.borrow().nodes.contains_key(name) {
                 self.program
                     .borrow_mut()
@@ -107,6 +111,7 @@ impl<'input> YarnSpinnerParserListener<'input> for CompilerListener<'input> {
                 .borrow_mut()
                 .push(self.current_debug_info.clone());
         }
+
         self.current_node = None;
         self.is_current_node_raw_text = false;
     }

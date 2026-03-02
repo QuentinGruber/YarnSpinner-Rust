@@ -653,6 +653,11 @@ fn assert_up_to_date_compiler(predicate: bool) {
 /// ignored.
 #[must_use]
 fn expand_substitutions(text: &str, substitutions: &[String]) -> String {
+    if substitutions.is_empty() {
+        // if we have no substitutions we want to just return the text as is
+        return text.to_owned();
+    }
+
     substitutions
         .iter()
         .enumerate()
