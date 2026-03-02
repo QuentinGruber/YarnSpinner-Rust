@@ -12,7 +12,9 @@ use antlr_rust::parser_rule_context::ParserRuleContext;
 use antlr_rust::token::Token;
 use antlr_rust::token_stream::TokenStream;
 use antlr_rust::tree::ParseTreeListener;
-use rand::{Rng, SeedableRng, rngs::SmallRng};
+use rand::RngExt as _;
+use rand::rngs::SysRng;
+use rand::{SeedableRng, rngs::SmallRng};
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::atomic::AtomicBool;
@@ -42,7 +44,7 @@ impl<'input> UntaggedLineListener<'input> {
 
     /// Generates a new unique line tag that is not present in `existing_line_tags`.
     fn generate_string(&self) -> LineId {
-        let mut rng = SmallRng::from_os_rng();
+        let mut rng = SmallRng::try_from_rng(&mut SysRng).unwrap();
         loop {
             let line: usize = rng.random_range(0..0x1000000);
             let tag = LineId(format!("{LINE_ID_PREFIX}{line}"));

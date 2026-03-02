@@ -5,7 +5,10 @@ use alloc::borrow::Cow;
 use core::fmt::Display;
 
 use hashbrown::hash_map;
-use rand::{Rng, SeedableRng, rngs::SmallRng};
+use rand::{
+    RngExt as _, SeedableRng,
+    rngs::{SmallRng, SysRng},
+};
 
 /// A collection of functions that can be called from Yarn scripts.
 ///
@@ -78,21 +81,21 @@ impl Library {
             "number" => |value: YarnValue| f32::try_from(value).expect("Failed to convert a Yarn value to a number"),
             "bool" => |value: YarnValue| bool::try_from(value).expect("Failed to convert a Yarn value to a bool"),
             "format_invariant" => |value: f32| value.to_string(),
-            "random" => || SmallRng::from_os_rng().random_range(0.0..1.0),
+            "random" => ||SmallRng::try_from_rng(&mut SysRng).unwrap().random_range(0.0..1.0),
             "random_range" => |min: f32, max: f32| {
                 if let Some(min) = min.as_int()
                     && let Some(max_inclusive) = max.as_int()
                 {
-                    return SmallRng::from_os_rng().random_range(min..=max_inclusive) as f32;
+                    return SmallRng::try_from_rng(&mut SysRng).unwrap().random_range(min..=max_inclusive) as f32;
                 }
-                SmallRng::from_os_rng().random_range(min..max)
+               SmallRng::try_from_rng(&mut SysRng).unwrap().random_range(min..max)
             },
-            "random_range_float" => |min: f32, max: f32| rand::random_range::<f32, _>(min..=max),
+            "random_range_float" => |min: f32, max: f32|  SmallRng::try_from_rng(&mut SysRng).unwrap().random_range::<f32, _>(min..=max),
             "dice" => |sides: u32| {
                 if sides == 0 {
                     return 1;
                 }
-                SmallRng::from_os_rng().random_range(1..=sides)
+                SmallRng::try_from_rng(&mut SysRng).unwrap().random_range(1..=sides)
             },
             "round" => |value: f32| value.round() as i32,
             "round_places" => |value: f32, places: u32| value.round_places(places),

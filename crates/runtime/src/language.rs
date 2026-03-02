@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use core::fmt::Display;
-use icu_locid::LanguageIdentifier;
+use icu_locale_core::LanguageIdentifier;
 
 /// IETF BCP 47 code.
 /// The default is "en-US".

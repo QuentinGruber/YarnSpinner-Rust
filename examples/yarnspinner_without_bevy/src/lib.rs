@@ -264,7 +264,7 @@ impl TuiDialogueRunner {
     fn draw(&mut self, terminal: &mut Terminal) -> anyhow::Result<()> {
         terminal.draw(|f| {
             let layout = Layout::vertical([Constraint::Fill(1), Constraint::Length(5)]);
-            let [output_area, options_area] = layout.areas(f.size());
+            let [output_area, options_area] = layout.areas(f.area());
 
             if let Some(line) = &self.last_line {
                 f.render_widget(LineView::new(line).bg(self.background_color), output_area);

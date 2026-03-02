@@ -1,6 +1,7 @@
 use crate::prelude::Language;
-use fixed_decimal::{DoublePrecision, FixedDecimal};
-use icu_plurals::{PluralCategory, PluralRuleType};
+use fixed_decimal::{Decimal, DoublePrecision};
+use icu_locale_core::Locale;
+use icu_plurals::{PluralCategory, PluralRuleType, PluralRulesPreferences};
 use icu_plurals::{PluralOperands, PluralRules};
 
 #[derive(Debug)]
@@ -12,9 +13,10 @@ pub(crate) struct Pluralization {
 impl Pluralization {
     pub(crate) fn new(language: impl Into<Language>) -> Self {
         let language = language.into();
-        let locale = language.0.into();
-        let cardinal_rules = PluralRules::try_new(&locale, PluralRuleType::Cardinal).unwrap();
-        let ordinal_rules = PluralRules::try_new(&locale, PluralRuleType::Ordinal).unwrap();
+        let locale: Locale = language.0.into();
+        let locale: PluralRulesPreferences = locale.into();
+        let cardinal_rules = PluralRules::try_new(locale, PluralRuleType::Cardinal.into()).unwrap();
+        let ordinal_rules = PluralRules::try_new(locale, PluralRuleType::Ordinal.into()).unwrap();
         Self {
             cardinal_rules,
             ordinal_rules,
@@ -38,7 +40,7 @@ fn get_into_plural_operand(value: f32) -> PluralOperands {
     if floating_point < 1e-5 {
         (value as isize).into()
     } else {
-        (&FixedDecimal::try_from_f64(value as f64, DoublePrecision::Floating).unwrap()).into()
+        (&Decimal::try_from_f64(value as f64, DoublePrecision::RoundTrip).unwrap()).into()
     }
 }
 
