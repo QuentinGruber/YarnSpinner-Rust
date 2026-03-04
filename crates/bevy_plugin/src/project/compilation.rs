@@ -54,14 +54,8 @@ fn load_project(
     mut commands: Commands,
     mut events: ResMut<Messages<LoadYarnProjectEvent>>,
     is_watching_for_changes: Res<WatchingForChanges>,
-    mut already_loaded: Local<bool>,
 ) -> SystemResult {
     for event in events.drain() {
-        if *already_loaded {
-            bail!(
-                "Yarn project already loaded. Sending multiple LoadYarnProjectEvent is not allowed."
-            );
-        }
         assert!(
             !event.yarn_files.is_empty(),
             "Failed to load Yarn project in deferred mode: no Yarn files were specified. \
@@ -83,7 +77,6 @@ fn load_project(
             development_file_generation: event.development_file_generation,
         });
         commands.insert_resource(YarnFilesToLoad(event.yarn_files));
-        *already_loaded = true;
     }
     Ok(())
 }
