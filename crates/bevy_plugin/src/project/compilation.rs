@@ -167,16 +167,16 @@ fn compile_loaded_yarn_files(
     mut yarn_files_being_loaded: ResMut<YarnFilesBeingLoaded>,
     yarn_files: Res<Assets<YarnFile>>,
     mut update_strings_files_writer: MessageWriter<UpdateAllStringsFilesForStringTableEvent>,
-    mut dirty: Local<bool>,
     yarn_project_config_to_load: Option<Res<YarnProjectConfigToLoad>>,
     asset_server: Res<AssetServer>,
     asset_root: Res<AssetRoot>,
 ) -> SystemResult {
     if yarn_files_being_loaded.is_changed() {
-        *dirty = true;
+        return Ok(());
     }
-    if yarn_files_being_loaded.0.is_empty() {
-        *dirty = false;
+
+    if yarn_project_config_to_load.is_none() {
+        return Ok(());
     }
 
     let all_files_finished_loading = || {
@@ -185,7 +185,7 @@ fn compile_loaded_yarn_files(
             .iter()
             .all(|handle| yarn_files.contains(handle))
     };
-    if !(*dirty && all_files_finished_loading()) {
+    if !(all_files_finished_loading()) {
         return Ok(());
     }
 
@@ -253,7 +253,6 @@ fn compile_loaded_yarn_files(
     let file_plural = if file_count == 1 { "file" } else { "files" };
     info!("Successfully compiled {file_count} Yarn {file_plural}");
 
-    *dirty = false;
     Ok(())
 }
 
