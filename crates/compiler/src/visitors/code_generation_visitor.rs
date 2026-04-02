@@ -439,6 +439,19 @@ impl<'a, 'input: 'a> YarnSpinnerParserVisitorCompat<'input> for CodeGenerationVi
                     Emit::from_op_code(OpCode::Stop).with_token(formatted_text.start().deref()),
                 );
             }
+            _ if composed_string.starts_with("detour ") => {
+                // "detour <NodeName>" runs another node as a subroutine and returns here.
+                let node_name = composed_string["detour ".len()..].trim().to_owned();
+                self.compiler_listener.emit(
+                    Emit::from_op_code(OpCode::PushString)
+                        .with_token(formatted_text.start().deref())
+                        .with_operand(node_name),
+                );
+                self.compiler_listener.emit(
+                    Emit::from_op_code(OpCode::DetourNode)
+                        .with_token(formatted_text.start().deref()),
+                );
+            }
             _ => {
                 self.compiler_listener.emit(
                     Emit::from_op_code(OpCode::RunCommand)

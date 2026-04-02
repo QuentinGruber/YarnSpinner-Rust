@@ -176,6 +176,11 @@ pub mod instruction {
         /// that name.
         /// No operands.
         RunNode = 16,
+        /// Pops a string off the top of the stack, and runs the node with
+        /// that name as a subroutine, returning execution to the next
+        /// instruction after this one when the called node finishes.
+        /// No operands.
+        DetourNode = 17,
     }
     impl OpCode {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -201,6 +206,7 @@ pub mod instruction {
                 OpCode::StoreVariable => "STORE_VARIABLE",
                 OpCode::Stop => "STOP",
                 OpCode::RunNode => "RUN_NODE",
+                OpCode::DetourNode => "DETOUR_NODE",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -223,6 +229,7 @@ pub mod instruction {
                 "STORE_VARIABLE" => Some(Self::StoreVariable),
                 "STOP" => Some(Self::Stop),
                 "RUN_NODE" => Some(Self::RunNode),
+                "DETOUR_NODE" => Some(Self::DetourNode),
                 _ => None,
             }
         }

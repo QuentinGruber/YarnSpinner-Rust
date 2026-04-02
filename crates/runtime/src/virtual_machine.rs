@@ -13,6 +13,12 @@ use log::*;
 mod execution_state;
 mod state;
 
+#[derive(Debug, Clone, Default)]
+pub(crate) struct CallFrame {
+    pub(crate) node_name: String,
+    pub(crate) return_address: usize,
+}
+
 #[derive(Debug, Clone)]
 pub(crate) struct VirtualMachine {
     pub(crate) library: Library,
@@ -27,6 +33,7 @@ pub(crate) struct VirtualMachine {
     line_parser: LineParser,
     text_provider: Box<dyn TextProvider>,
     language_code: Option<Language>,
+    call_stack: Vec<CallFrame>,
 }
 
 impl VirtualMachine {
@@ -49,6 +56,7 @@ impl VirtualMachine {
             current_node: Default::default(),
             batched_events: Default::default(),
             line_hints_enabled: Default::default(),
+            call_stack: Default::default(),
         }
     }
 
@@ -112,6 +120,17 @@ impl VirtualMachine {
         if self.line_hints_enabled {
             self.send_line_hints();
         }
+        Ok(())
+    }
+
+    /// Loads a node and sets the program counter to `return_address` without resetting the rest of state.
+    /// Used when returning from a `<<detour>>` call.
+    fn set_node_no_reset(&mut self, node_name: &str, return_address: usize) -> Result<()> {
+        debug!("Returning to node \"{node_name}\" at instruction {return_address}");
+        let current_node = self.get_node_from_name(node_name)?;
+        self.current_node = Some(current_node.clone());
+        self.current_node_name = Some(node_name.to_owned());
+        self.state.program_counter = return_address;
         Ok(())
     }
 
@@ -194,6 +213,14 @@ impl VirtualMachine {
             // so we do the incrementation in [`VirtualMachine::run_instruction`] instead.
 
             if self.state.program_counter < current_node.instructions.len() {
+                continue;
+            }
+
+            // Node completed — check if we need to return from a detour
+            if let Some(frame) = self.call_stack.pop() {
+                self.batched_events
+                    .push(DialogueEvent::NodeComplete(current_node.name.clone()));
+                self.set_node_no_reset(&frame.node_name, frame.return_address)?;
                 continue;
             }
 
@@ -572,6 +599,22 @@ impl VirtualMachine {
                 self.set_node(&node_name)?;
 
                 // No need to increment the program counter, since otherwise we'd skip the first instruction
+            }
+            OpCode::DetourNode => {
+                // Pop the target node name from the stack
+                let node_name: String = self.state.pop();
+
+                // Save the current position so we can return after the detour
+                let current_node_name = self.current_node_name.clone().unwrap();
+                self.call_stack.push(CallFrame {
+                    node_name: current_node_name,
+                    return_address: self.state.program_counter + 1,
+                });
+
+                // Jump into the target node (resets PC to 0, emits NodeStart)
+                self.set_node(&node_name)?;
+
+                // No need to increment the program counter
             }
         }
         Ok(())
