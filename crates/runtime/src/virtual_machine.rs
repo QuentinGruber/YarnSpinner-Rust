@@ -17,6 +17,8 @@ mod state;
 pub(crate) struct CallFrame {
     pub(crate) node_name: String,
     pub(crate) return_address: usize,
+    /// The caller's value stack, saved before `set_node` clears it.
+    pub(crate) stack: Vec<InternalValue>,
 }
 
 #[derive(Debug, Clone)]
@@ -212,7 +214,11 @@ impl VirtualMachine {
             // The original increments the program counter here, but that leads to intentional underflow on [`OpCode::RunNode`],
             // so we do the incrementation in [`VirtualMachine::run_instruction`] instead.
 
-            if self.state.program_counter < current_node.instructions.len() {
+            // Use the live current_node rather than the stale clone: an instruction like
+            // Stop (detour-return) or DetourNode may have switched self.current_node mid-loop.
+            if self.state.program_counter
+                < self.current_node.as_ref().unwrap().instructions.len()
+            {
                 continue;
             }
 
@@ -579,14 +585,21 @@ impl VirtualMachine {
                 self.state.program_counter += 1;
             }
             OpCode::Stop => {
-                // Immediately stop execution, and report that fact.
                 let current_node_name = self.current_node_name.clone().unwrap();
                 self.batched_events
                     .push(DialogueEvent::NodeComplete(current_node_name));
-                self.batched_events.push(DialogueEvent::DialogueComplete);
-                self.set_execution_state(ExecutionState::Stopped);
 
-                self.state.program_counter += 1;
+                if let Some(frame) = self.call_stack.pop() {
+                    // We reached the end of a detoured node — return to the calling node
+                    self.state.stack = frame.stack;
+                    self.set_node_no_reset(&frame.node_name, frame.return_address)?;
+                    // Don't stop; the loop continues in the calling node
+                } else {
+                    // Not in a detour — stop execution entirely
+                    self.batched_events.push(DialogueEvent::DialogueComplete);
+                    self.set_execution_state(ExecutionState::Stopped);
+                    self.state.program_counter += 1;
+                }
             }
             OpCode::RunNode => {
                 // Run a node
@@ -594,6 +607,8 @@ impl VirtualMachine {
                 // Pop a string from the stack, and jump to a node
                 // with that name.
                 let node_name: String = self.state.pop();
+                // Per spec: a jump clears the return stack, so any pending detour returns are discarded
+                self.call_stack.clear();
                 self.batched_events
                     .push(DialogueEvent::NodeComplete(node_name.clone()));
                 self.set_node(&node_name)?;
@@ -604,17 +619,37 @@ impl VirtualMachine {
                 // Pop the target node name from the stack
                 let node_name: String = self.state.pop();
 
-                // Save the current position so we can return after the detour
+                // Save the current position and stack so we can restore them after the detour.
+                // set_node calls reset_state which clears the stack, so we must save it now.
                 let current_node_name = self.current_node_name.clone().unwrap();
                 self.call_stack.push(CallFrame {
                     node_name: current_node_name,
                     return_address: self.state.program_counter + 1,
+                    stack: self.state.stack.clone(),
                 });
 
-                // Jump into the target node (resets PC to 0, emits NodeStart)
+                // Jump into the target node (resets PC and stack to 0/empty, emits NodeStart)
                 self.set_node(&node_name)?;
 
                 // No need to increment the program counter
+            }
+            OpCode::ReturnNode => {
+                if let Some(frame) = self.call_stack.pop() {
+                    // Return early from detour — jump back to the saved return address
+                    let current_node_name = self.current_node_name.clone().unwrap();
+                    self.batched_events
+                        .push(DialogueEvent::NodeComplete(current_node_name));
+                    self.state.stack = frame.stack;
+                    self.set_node_no_reset(&frame.node_name, frame.return_address)?;
+                } else {
+                    // Not in a detour — stop dialogue like <<stop>>
+                    let current_node_name = self.current_node_name.clone().unwrap();
+                    self.batched_events
+                        .push(DialogueEvent::NodeComplete(current_node_name));
+                    self.batched_events.push(DialogueEvent::DialogueComplete);
+                    self.set_execution_state(ExecutionState::Stopped);
+                    self.state.program_counter += 1;
+                }
             }
         }
         Ok(())

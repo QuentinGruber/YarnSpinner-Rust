@@ -348,3 +348,76 @@ fn test_selecting_option_from_inside_option_callback() {
         }
     }
 }
+
+fn run_and_collect_lines(source: &str) -> Vec<String> {
+    let result = Compiler::new()
+        .add_file(File {
+            file_name: "test.yarn".to_owned(),
+            source: source.to_owned(),
+        })
+        .compile()
+        .unwrap();
+
+    let mut test_base = TestBase::new().with_compilation(result);
+    test_base.dialogue.set_node("Start").unwrap();
+
+    let mut lines = Vec::new();
+    while test_base.dialogue.can_continue() {
+        #[cfg(feature = "bevy")]
+        let events = test_base
+            .dialogue
+            .continue_with_world(&mut bevy::prelude::World::default());
+        #[cfg(not(feature = "bevy"))]
+        let events = test_base.dialogue.continue_();
+        for event in events.unwrap() {
+            if let DialogueEvent::Line(line) = event {
+                lines.push(line.text);
+            }
+        }
+    }
+    lines
+}
+
+#[test]
+fn test_detour_basic() {
+    let source = format!(
+        "{}\n{}",
+        create_test_node_with_name("before\n<<detour Sub>>\nafter", "Start"),
+        create_test_node_with_name("inside", "Sub"),
+    );
+    let lines = run_and_collect_lines(&source);
+    assert_eq!(lines, vec!["before", "inside", "after"]);
+}
+
+#[test]
+fn test_detour_return_early() {
+    // <<return>> exits the detoured node before its final line
+    let source = format!(
+        "{}\n{}",
+        create_test_node_with_name("before\n<<detour Sub>>\nafter", "Start"),
+        create_test_node_with_name("inside early\n<<return>>\nnever reached", "Sub"),
+    );
+    let lines = run_and_collect_lines(&source);
+    assert_eq!(lines, vec!["before", "inside early", "after"]);
+}
+
+#[test]
+fn test_return_without_detour_stops_dialogue() {
+    let source = create_test_node_with_name("line 1\n<<return>>\nnever reached", "Start");
+    let lines = run_and_collect_lines(&source);
+    assert_eq!(lines, vec!["line 1"]);
+}
+
+#[test]
+fn test_jump_inside_detour_clears_call_stack() {
+    // <<jump>> from inside a detour clears the call stack, so execution
+    // continues in the jumped-to node and does NOT return to the detour site.
+    let source = format!(
+        "{}\n{}\n{}",
+        create_test_node_with_name("before\n<<detour Sub>>\nnever reached", "Start"),
+        create_test_node_with_name("inside\n<<jump Final>>", "Sub"),
+        create_test_node_with_name("final", "Final"),
+    );
+    let lines = run_and_collect_lines(&source);
+    assert_eq!(lines, vec!["before", "inside", "final"]);
+}

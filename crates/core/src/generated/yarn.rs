@@ -181,6 +181,11 @@ pub mod instruction {
         /// instruction after this one when the called node finishes.
         /// No operands.
         DetourNode = 17,
+        /// Returns from a detoured node, resuming execution just after the
+        /// detour command that caused the detour. If not currently in a
+        /// detour, stops the dialogue.
+        /// No operands.
+        ReturnNode = 18,
     }
     impl OpCode {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -207,6 +212,7 @@ pub mod instruction {
                 OpCode::Stop => "STOP",
                 OpCode::RunNode => "RUN_NODE",
                 OpCode::DetourNode => "DETOUR_NODE",
+                OpCode::ReturnNode => "RETURN_NODE",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -230,6 +236,7 @@ pub mod instruction {
                 "STOP" => Some(Self::Stop),
                 "RUN_NODE" => Some(Self::RunNode),
                 "DETOUR_NODE" => Some(Self::DetourNode),
+                "RETURN_NODE" => Some(Self::ReturnNode),
                 _ => None,
             }
         }
